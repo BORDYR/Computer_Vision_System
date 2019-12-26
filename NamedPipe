@@ -1,0 +1,10 @@
+import time
+data='12345'
+pipe_path = r'\\.\pipe\PipesOfPiece' #TODO: can't concatenate '\\.\pipe\PipesOfPiece' and 'PipesOfPiece'
+message = data.encode('utf-8')
+with open(pipe_path, mode='r+b', buffering=0) as f:
+	f.write(message)
+	print('message sent')
+	time.sleep(1)
+	for i in range(5):
+		f.write(message)
