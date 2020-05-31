@@ -1,49 +1,44 @@
 import numpy as np
 import collections
-import operator
-import argparse
 import cv2
 import time
 
-image = cv2.imread('D:/PycharmProjects/object_detector_app/utils/j3.jpg')
-circles_rating = collections.defaultdict(int)
 
-def viewImage(image, window : str):
-    cv2.namedWindow(window, cv2.WINDOW_NORMAL)
-    cv2.imshow(window, image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+class Circlerecognizer():
+	def __init__(self):
+		self.circles_rating = collections.defaultdict(int)
 
-def circle_recognise(image):
-	output = image.copy()
-	circles = get_circles(image)
+	def viewImage(self, image, window : str):
+		cv2.namedWindow(window, cv2.WINDOW_NORMAL)
+		cv2.imshow(window, image)
+		cv2.waitKey(0)
+		cv2.destroyAllWindows()
 
-	# ensure at least some circles were found
-	if (circles is not None) :
-		# convert the (x, y) coordinates and radius of the circles to integers
-		circles = np.round(circles[0, :]).astype("int")
-		# loop over the (x, y) coordinates and radius of the circles
+	def circle_recognise(self, image):
+		output = image.copy()
+		circles = self.get_circles(image)
+		if (circles is not None) :
+			circles = np.round(circles[0, :]).astype("int")
+			for (x, y, r) in circles:
+				x, y, r = x.item(), y.item(), r.item()
+				cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+				print(f'Circle has been detected! x = {x}p, y = {y}p, r = {r}p')
+				cir = f'{x}, {y}, {r}'
+				self.circles_rating[cir] += 1
+		else:
+			print('Circles haven\'t been found')
+		return dict(self.circles_rating), output
 
-		for (x, y, r) in circles:
-			x, y, r = x.item(), y.item(), r.item()
-			cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-			print(f'Circle has been detected! x = {x}p, y = {y}p, r = {r}p')
-			cir = f'{x}, {y}, {r}'
-			circles_rating[cir] += 1
-	else:
-		print('Circles haven\'t been found')
-	return dict(circles_rating), output
+	def get_circles(self, image):
+		gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+		gray = cv2.GaussianBlur(gray, (5, 5), 0)
+		circles = cv2.HoughCircles(image=gray, method=cv2.HOUGH_GRADIENT, dp=2, minDist=22, minRadius=25, maxRadius=32)
+		return circles
 
-
-def get_circles(image):
-	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	# Detect circles in the image
-	# Actual circle size is 25mm.
-	#cv2.GaussianBlur(image, gray, ksize=)
-	#gray = cv2.blur(gray, (2, 2))
-	gray = cv2.GaussianBlur(gray, (5, 5), 0)
-	circles = cv2.HoughCircles(image=gray, method=cv2.HOUGH_GRADIENT, dp=2, minDist=22, minRadius=25, maxRadius=32)
-
-	height, width, channels = image.shape
-	#print('height = {}, width = {}'.format(height, width))
-	return circles
+	def showOneCircle(self, x, y, r=29):
+		img = cv2.imread('e2.jpg')
+		img = img.copy()
+		cv2.circle(img, (int(x), int(y)), r, (0, 0, 255), 4)
+		cv2.imshow('frame2', img)
+		cv2.waitKey(1)
+		time.sleep(1)
